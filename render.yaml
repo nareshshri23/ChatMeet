@@ -3,10 +3,10 @@ services:
     name: chatmeet
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn chat_project.asgi:application -k uvicorn.workers.UvicornWorker
+    startCommand: daphne chat_project.asgi:application --port $PORT --bind 0.0.0.0
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.11.0
       - key: DATABASE_URL
         fromDatabase:
           name: chatmeet-db
@@ -15,8 +15,15 @@ services:
         generateValue: true
       - key: DJANGO_DEBUG
         value: false
-      - key: ALLOWED_HOST
-        value: .onrender.com
+      - key: ALLOWED_HOSTS
+        value: chatmeet-wn9f.onrender.com
+      - key: WEB_CONCURRENCY
+        value: 4
+      - key: REDIS_URL
+        fromService:
+          name: chatmeet-redis
+          type: redis
+          property: connectionString
 
   - type: redis
     name: chatmeet-redis

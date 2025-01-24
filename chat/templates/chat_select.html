@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        min-height: calc(100vh - 56px);
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        color: white;
+        padding: 2rem 0;
+    }
+    
+    .chat-option-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .chat-option-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: 0.5s;
+    }
+    
+    .chat-option-card:hover::before {
+        left: 100%;
+    }
+    
+    .chat-option-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-icon {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(45deg, #ff3366, #ff6b6b);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .interest-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .interest-tag {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 0.25rem 1rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .interest-tag:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .interest-tag.active {
+        background: #ff3366;
+    }
+    
+    .start-btn {
+        background: linear-gradient(45deg, #ff3366, #ff6b6b);
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .start-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+    }
+    
+    .matching-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    
+    .matching-content {
+        text-align: center;
+        color: white;
+    }
+    
+    .spinner {
+        width: 80px;
+        height: 80px;
+        border: 8px solid rgba(255, 255, 255, 0.1);
+        border-left-color: #ff3366;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 text-center">
+                <h2 class="display-4 mb-3">Start Chatting</h2>
+                <p class="lead text-muted">Choose your interests and start connecting with people worldwide</p>
+                
+                <div class="interest-tags">
+                    <span class="interest-tag" data-interest="music">Music</span>
+                    <span class="interest-tag" data-interest="gaming">Gaming</span>
+                    <span class="interest-tag" data-interest="movies">Movies</span>
+                    <span class="interest-tag" data-interest="sports">Sports</span>
+                    <span class="interest-tag" data-interest="tech">Technology</span>
+                    <span class="interest-tag" data-interest="art">Art</span>
+                    <span class="interest-tag" data-interest="travel">Travel</span>
+                    <span class="interest-tag" data-interest="food">Food</span>
+                    <span class="interest-tag" data-interest="books">Books</span>
+                    <span class="interest-tag" data-interest="fitness">Fitness</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center g-4">
+            <div class="col-md-5">
+                <div class="chat-option-card h-100" id="videoChat">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-video chat-icon"></i>
+                        <h3>Video Chat</h3>
+                        <p class="text-muted">Meet face-to-face with random people who share your interests</p>
+                        <button class="btn start-btn" onclick="startMatching('video')">
+                            <i class="fas fa-random me-2"></i>Start Random Video Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-5">
+                <div class="chat-option-card h-100" id="textChat">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-comments chat-icon"></i>
+                        <h3>Text Chat</h3>
+                        <p class="text-muted">Connect through messages with people around the world</p>
+                        <button class="btn start-btn" onclick="startMatching('text')">
+                            <i class="fas fa-random me-2"></i>Start Random Text Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if request.session.guest_id %}
+        <div class="text-center mt-5">
+            <p class="text-muted">Chatting as guest</p>
+            <a href="{% url 'chat:home' %}" class="btn btn-link text-white">Switch Account</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Matching Overlay -->
+<div class="matching-overlay" id="matchingOverlay">
+    <div class="matching-content">
+        <div class="spinner mb-4"></div>
+        <h3 class="mb-3">Finding someone for you...</h3>
+        <p class="text-muted mb-4">This usually takes less than 30 seconds</p>
+        <button class="btn btn-outline-light" onclick="cancelMatching()">Cancel</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle interest tag selection
+    const interestTags = document.querySelectorAll('.interest-tag');
+    interestTags.forEach(tag => {
+        tag.addEventListener('click', () => {
+            tag.classList.toggle('active');
+        });
+    });
+});
+
+function getSelectedInterests() {
+    const activeTags = document.querySelectorAll('.interest-tag.active');
+    return Array.from(activeTags).map(tag => tag.dataset.interest);
+}
+
+function startMatching(type) {
+    const interests = getSelectedInterests();
+    const overlay = document.getElementById('matchingOverlay');
+    overlay.style.display = 'flex';
+    
+    // Connect to WebSocket and start matching
+    const socket = new WebSocket(
+        `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/matching/`
+    );
+    
+    socket.onopen = () => {
+        socket.send(JSON.stringify({
+            type: 'start_matching',
+            chat_type: type,
+            interests: interests
+        }));
+    };
+    
+    socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'match_found') {
+            window.location.href = data.chat_type === 'video' 
+                ? `{% url 'chat:video_chat' %}?room=${data.room_id}`
+                : `{% url 'chat:text_chat' %}?room=${data.room_id}`;
+        }
+    };
+    
+    // Store socket in window object to access it from cancelMatching
+    window.matchingSocket = socket;
+}
+
+function cancelMatching() {
+    const overlay = document.getElementById('matchingOverlay');
+    overlay.style.display = 'none';
+    
+    if (window.matchingSocket) {
+        window.matchingSocket.send(JSON.stringify({
+            type: 'cancel_matching'
+        }));
+        window.matchingSocket.close();
+        window.matchingSocket = null;
+    }
+}
+</script>
+{% endblock %}

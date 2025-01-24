@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        min-height: calc(100vh - 56px);
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    
+    .logo-text {
+        font-size: 3.5rem;
+        font-weight: bold;
+        background: linear-gradient(45deg, #ff3366, #ff6b6b);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+    }
+    
+    .start-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 400px;
+        margin: 2rem auto;
+    }
+    
+    .option-btn {
+        padding: 1rem;
+        border-radius: 10px;
+        border: none;
+        font-size: 1.2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .option-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+    }
+    
+    .option-btn:hover::before {
+        left: 100%;
+    }
+    
+    .video-btn {
+        background: #ff3366;
+        color: white;
+    }
+    
+    .text-btn {
+        background: #2c3e50;
+        color: white;
+    }
+    
+    .guest-btn {
+        background: transparent;
+        border: 2px solid #ff3366;
+        color: #ff3366;
+    }
+    
+    .guest-btn:hover {
+        background: #ff3366;
+        color: white;
+    }
+    
+    .features {
+        padding: 2rem 0;
+        background: #0a0a0a;
+    }
+    
+    .feature-card {
+        background: #1a1a1a;
+        border-radius: 15px;
+        padding: 2rem;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #ff3366;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="logo-text">ChatMeet</h1>
+        <p class="lead mb-5">Meet new people instantly through video or text chat</p>
+        
+        <div class="start-options">
+            {% if user.is_authenticated %}
+                <a href="{% url 'chat:video_chat' %}" class="option-btn video-btn">
+                    <i class="fas fa-video me-2"></i>Start Video Chat
+                </a>
+                <a href="{% url 'chat:text_chat' %}" class="option-btn text-btn">
+                    <i class="fas fa-comments me-2"></i>Start Text Chat
+                </a>
+            {% else %}
+                <button class="option-btn video-btn" data-bs-toggle="modal" data-bs-target="#guestModal">
+                    <i class="fas fa-video me-2"></i>Start Video Chat
+                </button>
+                <button class="option-btn text-btn" data-bs-toggle="modal" data-bs-target="#guestModal">
+                    <i class="fas fa-comments me-2"></i>Start Text Chat
+                </button>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'account_login' %}" class="option-btn guest-btn flex-grow-1">
+                        <i class="fas fa-sign-in-alt me-2"></i>Log In
+                    </a>
+                    <a href="{% url 'account_signup' %}" class="option-btn guest-btn flex-grow-1">
+                        <i class="fas fa-user-plus me-2"></i>Sign Up
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="features">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-white">Safe & Secure</h3>
+                    <p class="text-muted">End-to-end encrypted chats and secure video calls</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="text-white">Instant Connection</h3>
+                    <p class="text-muted">Connect with new people instantly with just one click</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="text-white">Global Community</h3>
+                    <p class="text-muted">Meet people from around the world</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guest Modal -->
+<div class="modal fade" id="guestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Quick Start</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="guestForm" action="{% url 'chat:guest_login' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="guestName" class="form-label">Display Name *</label>
+                        <input type="text" class="form-control bg-dark text-white" id="guestName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Choose Your Avatar</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="radio" class="btn-check" name="emoji" id="emoji1" value="😊" checked>
+                            <label class="btn btn-outline-light" for="emoji1">😊</label>
+                            
+                            <input type="radio" class="btn-check" name="emoji" id="emoji2" value="😎">
+                            <label class="btn btn-outline-light" for="emoji2">😎</label>
+                            
+                            <input type="radio" class="btn-check" name="emoji" id="emoji3" value="🤓">
+                            <label class="btn btn-outline-light" for="emoji3">🤓</label>
+                            
+                            <input type="radio" class="btn-check" name="emoji" id="emoji4" value="😇">
+                            <label class="btn btn-outline-light" for="emoji4">😇</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="guestInterests" class="form-label">Interests (optional)</label>
+                        <input type="text" class="form-control bg-dark text-white" id="guestInterests" name="preferences" 
+                               placeholder="e.g., Music, Gaming, Travel">
+                    </div>
+                    <div class="mb-3">
+                        <label for="guestAbout" class="form-label">About Me (optional)</label>
+                        <textarea class="form-control bg-dark text-white" id="guestAbout" name="about" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Start Chatting</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const guestForm = document.getElementById('guestForm');
+    
+    guestForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(guestForm);
+        const data = {};
+        formData.forEach((value, key) => data[key] = value);
+        
+        try {
+            const response = await fetch(guestForm.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                window.location.href = result.redirect;
+            } else {
+                alert(result.error || 'An error occurred');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request');
+        }
+    });
+});
+</script>
+{% endblock %}

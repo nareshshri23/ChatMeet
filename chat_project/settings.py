@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2u1*t7uc$+#$oz^0k)c+cy1!jkz_)*js%doi1@x*fccai&uh$j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'chatmeet-wn9f.onrender.com',
